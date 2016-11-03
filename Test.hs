@@ -34,7 +34,15 @@ decomposition x y z = x * y * z == x * y + x * z + y * z
 absorption :: Graph Int -> Graph Int -> Bool
 absorption x y = x + x * y == x * y && y + x * y == x * y
 
--- Test partial order on graphs
+-- Test the partial order on graphs:
+partialOrder :: Graph Int -> Graph Int -> Bool
+partialOrder x y
+    | x -<- y && x ->- y = x == y
+    | x -<- y            = x + y == y
+    | x ->- y            = x + y == x
+    | x -|- y            = x /= y
+    | otherwise          = False
+
 lowerBound :: Graph Int -> Bool
 lowerBound x = empty -<- x
 
@@ -55,6 +63,7 @@ main = do
     quickCheck distributivity
     quickCheck decomposition
     quickCheck absorption
+    quickCheck partialOrder
     quickCheck lowerBound
     quickCheck upperBound
     quickCheck overlayConnectOrder
