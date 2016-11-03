@@ -1,0 +1,31 @@
+name:          graph-algebra
+version:       0.0.1
+synopsis:      A simple graph algebra
+license:       MIT
+license-file:  LICENSE
+author:        Andrey Mokhov <andrey.mokhov@gmail.com>, github: @snowleopard
+maintainer:    Andrey Mokhov <andrey.mokhov@gmail.com>, github: @snowleopard
+copyright:     Andrey Mokhov, 2016
+homepage:      https://github.com/snowleopard/graph-algebra
+category:      Algebra
+build-type:    Simple
+cabal-version: >=1.10
+
+source-repository head
+    type:     git
+    location: https://github.com/snowleopard/graph-algebra.git
+
+library
+    hs-source-dirs:   src
+    exposed-modules:  Graph,
+                      PartialOrder,
+                      Relation,
+                      Test
+    build-depends:    base       >= 4.8 && < 5,
+                      QuickCheck >= 2.6 && < 2.9
+    default-language: Haskell2010
+    other-extensions: DeriveFunctor,
+                      DeriveFoldable,
+                      DeriveTraversable
+                      FlexibleInstances
+    GHC-options:      -Wall -fwarn-tabs
