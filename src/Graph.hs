@@ -3,9 +3,7 @@ module Graph (
     Graph, empty, vertex, overlay, connect, clique, vertices, normalise
     ) where
 
-import Data.Monoid
 import Test.QuickCheck
-import qualified Data.Set as Set
 
 import PartialOrder
 import Relation (Relation (..))
@@ -65,12 +63,12 @@ clique :: [a] -> Graph a
 clique = foldr Connect Empty . map Vertex
 
 foldGraph :: b -> (a -> b) -> (b -> b -> b) -> (b -> b -> b) -> Graph a -> b
-foldGraph empty vertex overlay connect = go
+foldGraph e v o c = go
   where
-    go Empty         = empty
-    go (Vertex  x  ) = vertex x
-    go (Overlay x y) = overlay (go x) (go y)
-    go (Connect x y) = connect (go x) (go y)
+    go Empty         = e
+    go (Vertex  x  ) = v x
+    go (Overlay x y) = o (go x) (go y)
+    go (Connect x y) = c (go x) (go y)
 
 normalise :: Ord a => Graph a -> Relation a
 normalise = foldGraph Relation.empty Relation.singleton Relation.union cross
