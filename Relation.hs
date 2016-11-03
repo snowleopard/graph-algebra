@@ -5,8 +5,13 @@ module Relation (
 import Data.Set (Set)
 import qualified Data.Set as Set
 
+import PartialOrder
+
 data Relation a = Relation { domain :: Set a, relation :: Set (a, a) }
-                  deriving (Show, Eq, Ord)
+                  deriving (Show, Eq)
+
+instance Ord a => PartialOrder (Relation a) where
+    x -<- y = domain x -<- domain y && relation x -<- relation y
 
 empty :: Relation a
 empty = Relation Set.empty Set.empty
