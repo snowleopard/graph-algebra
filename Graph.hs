@@ -1,6 +1,14 @@
-{-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveTraversable #-}
+{-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveGeneric, DeriveTraversable #-}
+module Graph (
+    Graph, empty, vertex, overlay, connect, clique, vertices, normalise
+    ) where
 
-import           Relation (Relation (..))
+import Data.Monoid
+import Test.QuickCheck
+import qualified Data.Set as Set
+
+import PartialOrder
+import Relation (Relation (..))
 import qualified Relation as Relation
 
 data Graph a = Empty
@@ -9,6 +17,27 @@ data Graph a = Empty
              | Connect (Graph a) (Graph a)
              deriving (Show, Functor, Foldable, Traversable)
 
+instance Arbitrary a => Arbitrary (Graph a) where
+    arbitrary = sized graph
+      where
+        graph 0 = return Empty
+        graph 1 = Vertex <$> arbitrary
+        graph n = do
+            left <- choose (0, n)
+            oneof [ Overlay <$> (graph left) <*> (graph $ n - left)
+                  , Connect <$> (graph left) <*> (graph $ n - left) ]
+
+    shrink Empty         = []
+    shrink (Vertex    _) = [Empty]
+    shrink (Overlay x y) = [Empty, x, y]
+                        ++ [Overlay x' y' | (x', y') <- shrink (x, y) ]
+    shrink (Connect x y) = [Empty, x, y, Overlay x y]
+                        ++ [Connect x' y' | (x', y') <- shrink (x, y) ]
+
+instance Monoid (Graph a) where
+    mempty  = Empty
+    mappend = Overlay
+
 instance Num a => Num (Graph a) where
     fromInteger = Vertex . fromInteger
     (+)         = Overlay
@@ -16,6 +45,21 @@ instance Num a => Num (Graph a) where
     signum      = const Empty
     abs         = id
     negate      = id
+
+empty :: Graph a
+empty = Empty
+
+vertex :: a -> Graph a
+vertex = Vertex
+
+overlay :: Graph a -> Graph a -> Graph a
+overlay = Overlay
+
+connect :: Graph a -> Graph a -> Graph a
+connect = Connect
+
+vertices :: [a] -> Graph a
+vertices = foldr Overlay Empty . map Vertex
 
 clique :: [a] -> Graph a
 clique = foldr Connect Empty . map Vertex
@@ -36,18 +80,5 @@ normalise = foldGraph Relation.empty Relation.singleton Relation.union cross
 instance Ord a => Eq (Graph a) where
     x == y = normalise x == normalise y
 
-instance Ord a => Ord (Graph a) where
-    compare x y = compare (normalise x) (normalise y)
-
-ex1 :: Graph Int
-ex1 = 1 * (2 + 3)
-
-ex2 :: Graph Int
-ex2 = 1 * 2 * 3
-
-main = do
-    print ex1
-    print ex2
-    print $ normalise ex1
-    print $ ex1 < ex2
-    print $ ex2 == clique [1..3]
+instance Ord a => PartialOrder (Graph a) where
+    x -<- y = normalise x -<- normalise y
