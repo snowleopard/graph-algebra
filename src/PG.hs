@@ -35,7 +35,7 @@ connect = liftM2 Graph.connect
 (?) :: Predicate b -> PG a b -> PG a b
 p ? x = do { bool <- p; if bool then x else mempty }
 
-infixr 5 ?
+infixr 8 ?
 
 test :: (b -> Bool) -> Predicate b
 test = asks
