@@ -52,3 +52,14 @@ test-suite test-processor
                       graph-algebra
     default-language: Haskell2010
     GHC-options:      -O2 -Wall -fwarn-tabs
+
+test-suite test-concepts
+    hs-source-dirs:   test
+    type:             exitcode-stdio-1.0
+    main-is:          Concepts.hs
+    build-depends:    base   >= 4.8 && < 5,
+                      pretty == 1.1.*,
+                      QuickCheck >= 2.6 && < 2.9,
+                      graph-algebra
+    default-language: Haskell2010
+    GHC-options:      -O2 -Wall -fwarn-tabs
