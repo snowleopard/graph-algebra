@@ -51,4 +51,4 @@ main = do
     demo $ decode processor 2
     demo $ decode processor 3
   where
-    demo = putStrLn . pretty . simplify
+    demo = putStrLn . pretty . fmap show . simplify

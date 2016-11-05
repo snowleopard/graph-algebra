@@ -105,11 +105,11 @@ toString :: Pretty -> String
 toString (Open   s) = s
 toString (Closed s) = s
 
-pretty :: Show a => Graph a -> String
+pretty :: Graph String -> String
 pretty = toString . go
   where
     go Empty         = Closed "()"
-    go (Vertex  x  ) = Closed $ show x
+    go (Vertex  x  ) = Closed x
     go (Overlay x y) = Open   (pretty x ++ " + "  ++ pretty y)
     go (Connect x y) = Closed (pretty x ++ " -> " ++ pretty y)
 
