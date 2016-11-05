@@ -2,7 +2,7 @@
 module PG (
     module Data.Bits,
     PG, Predicate, empty, vertex, overlay, connect, decode, (?), test, readBit,
-    (~>), clique, vertices, normalise, fromRelation, pretty, simplify
+    (~>), clique, vertices, normalise, fromRelation, simplify
     ) where
 
 import Control.Monad.Reader

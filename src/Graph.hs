@@ -2,11 +2,12 @@
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
 module Graph (
     Graph, empty, vertex, overlay, connect, (~>), clique, vertices, normalise,
-    fromRelation, pretty, simplify
+    fromRelation, simplify
     ) where
 
 import Control.Monad.Reader
 import Test.QuickCheck
+import Text.PrettyPrint.HughesPJClass hiding (empty)
 
 import PartialOrder
 import Relation (Relation (..))
@@ -97,19 +98,13 @@ instance Ord a => Eq (Graph a) where
 instance Ord a => PartialOrder (Graph a) where
     x -<- y = normalise x -<- normalise y
 
-data Pretty = Open String | Closed String
-
-toString :: Pretty -> String
-toString (Open   s) = s
-toString (Closed s) = s
-
-pretty :: Graph String -> String
-pretty = toString . go
-  where
-    go Empty         = Closed "()"
-    go (Vertex  x  ) = Closed x
-    go (Overlay x y) = Open   (pretty x ++ " + "  ++ pretty y)
-    go (Connect x y) = Closed (pretty x ++ " -> " ++ pretty y)
+instance Pretty a => Pretty (Graph a) where
+    pPrintPrec _ _ Empty         = text "()"
+    pPrintPrec _ _ (Vertex  x  ) = pPrint x
+    pPrintPrec l p (Overlay x y) = maybeParens (p > 0) $
+        hsep [pPrintPrec l 0 x, text "+", pPrintPrec l 0 y]
+    pPrintPrec l _ (Connect x y) =
+        hsep [pPrintPrec l 1 x, text "->", pPrintPrec l 1 y]
 
 simplify :: Ord a => Graph a -> Graph a
 simplify (Overlay x y)

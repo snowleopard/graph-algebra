@@ -1,11 +1,15 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 import Data.Monoid
+import Text.PrettyPrint.HughesPJClass (text, Pretty (..), prettyShow)
+
 import PG
 
 data Unit = IncrPC | LoadIR | ALU deriving (Eq, Ord, Show)
 
-newtype Opcode = Opcode Int deriving (Bits, Eq, Num, Show)
+instance Pretty Unit where pPrint = text . show
+
+newtype Opcode = Opcode Int deriving (Bits, Eq, Num)
 
 type Expression = PG Unit Opcode
 type Condition  = Predicate Opcode
@@ -51,4 +55,4 @@ main = do
     demo $ decode processor 2
     demo $ decode processor 3
   where
-    demo = putStrLn . pretty . fmap show . simplify
+    demo = putStrLn . prettyShow . simplify
