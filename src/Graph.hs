@@ -6,7 +6,6 @@ module Graph (
     ) where
 
 import Control.Monad.Reader
-import qualified Data.Set as Set
 import Test.QuickCheck
 
 import PartialOrder
@@ -81,12 +80,11 @@ foldGraph e v o c = go
     go (Overlay x y) = o (go x) (go y)
     go (Connect x y) = c (go x) (go y)
 
-
 fromRelation :: Relation a -> Graph a
-fromRelation r = vertices (Set.elems $ Relation.domain r) `Overlay` arcs
+fromRelation r = vertices (Relation.domain r) `Overlay` arcs
   where
     arcs = foldr Overlay Empty
-        [ Vertex x `Connect` Vertex y | (x, y) <- Set.elems (Relation.relation r) ]
+        [ Vertex x `Connect` Vertex y | (x, y) <- Relation.relation r ]
 
 normalise :: Ord a => Graph a -> Relation a
 normalise = foldGraph Relation.empty Relation.singleton Relation.union cross

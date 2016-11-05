@@ -1,7 +1,8 @@
 {-# LANGUAGE FlexibleInstances #-}
 module PartialOrder (PartialOrder (..)) where
 
-import qualified Data.Set as Set
+import qualified Data.Set  as Set
+import qualified Data.List as List
 
 class PartialOrder a where
     {-# MINIMAL (-<-) | (->-) #-}
@@ -18,3 +19,6 @@ infix 4 -|-
 
 instance Ord a => PartialOrder (Set.Set a) where
     (-<-) = Set.isSubsetOf
+
+instance Ord a => PartialOrder [a] where
+    (-<-) = List.isSubsequenceOf
