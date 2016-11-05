@@ -33,6 +33,7 @@ library
     GHC-options:      -Wall -fwarn-tabs
 
 test-suite test-library
+    hs-source-dirs:   test
     type:             exitcode-stdio-1.0
     main-is:          Test.hs
     build-depends:    base >= 4.8 && < 5,
@@ -42,6 +43,7 @@ test-suite test-library
     GHC-options:      -Wall -fwarn-tabs
 
 test-suite test-processor
+    hs-source-dirs:   test
     type:             exitcode-stdio-1.0
     main-is:          Processor.hs
     build-depends:    base >= 4.8 && < 5,
