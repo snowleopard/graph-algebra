@@ -1,13 +1,17 @@
 {-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveGeneric, DeriveTraversable #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
 module Graph (
-    Graph, empty, vertex, overlay, connect, clique, vertices, normalise
+    Graph, empty, vertex, overlay, connect, (~>), clique, vertices, normalise,
+    fromRelation, pretty, simplify
     ) where
 
+import Control.Monad.Reader
+import qualified Data.Set as Set
 import Test.QuickCheck
 
 import PartialOrder
 import Relation (Relation (..))
-import qualified Relation as Relation
+import qualified Relation
 
 data Graph a = Empty
              | Vertex a
@@ -35,6 +39,13 @@ instance Arbitrary a => Arbitrary (Graph a) where
 instance Monoid (Graph a) where
     mempty  = Empty
     mappend = Overlay
+
+instance Monoid (Reader a (Graph b)) where
+    mempty  = return mempty
+    mappend = liftM2 overlay
+
+(~>) :: Graph a -> Graph a -> Graph a
+(~>) = connect
 
 instance Num a => Num (Graph a) where
     fromInteger = Vertex . fromInteger
@@ -70,6 +81,13 @@ foldGraph e v o c = go
     go (Overlay x y) = o (go x) (go y)
     go (Connect x y) = c (go x) (go y)
 
+
+fromRelation :: Relation a -> Graph a
+fromRelation r = vertices (Set.elems $ Relation.domain r) `Overlay` arcs
+  where
+    arcs = foldr Overlay Empty
+        [ Vertex x `Connect` Vertex y | (x, y) <- Set.elems (Relation.relation r) ]
+
 normalise :: Ord a => Graph a -> Relation a
 normalise = foldGraph Relation.empty Relation.singleton Relation.union cross
   where
@@ -80,3 +98,34 @@ instance Ord a => Eq (Graph a) where
 
 instance Ord a => PartialOrder (Graph a) where
     x -<- y = normalise x -<- normalise y
+
+data Pretty = Open String | Closed String
+
+toString :: Pretty -> String
+toString (Open   s) = s
+toString (Closed s) = s
+
+pretty :: Show a => Graph a -> String
+pretty = toString . go
+  where
+    go Empty         = Closed "()"
+    go (Vertex  x  ) = Closed $ show x
+    go (Overlay x y) = Open   (pretty x ++ " + "  ++ pretty y)
+    go (Connect x y) = Closed (pretty x ++ " -> " ++ pretty y)
+
+simplify :: Ord a => Graph a -> Graph a
+simplify (Overlay x y)
+    | x' -<- y' = y'
+    | x' ->- y' = x'
+    | otherwise = Overlay x' y'
+  where
+    x' = simplify x
+    y' = simplify y
+simplify (Connect x y)
+    | x' == Empty = y'
+    | y' == Empty = x'
+    | otherwise = Connect x' y'
+  where
+    x' = simplify x
+    y' = simplify y
+simplify x = x
