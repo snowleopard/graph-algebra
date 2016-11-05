@@ -4,6 +4,7 @@ import Data.Monoid
 import Test.QuickCheck
 import Text.PrettyPrint.HughesPJClass (hcat, text, Pretty (..), prettyShow)
 
+import Basic
 import Graph
 
 data Transition a = Transition a Bool deriving (Eq, Ord)
@@ -11,13 +12,16 @@ data Transition a = Transition a Bool deriving (Eq, Ord)
 instance Pretty a => Pretty (Transition a) where
     pPrint (Transition s v) = hcat [pPrint s, text $ if v then "+" else "-"]
 
-type Concept a = Graph (Transition a)
+type Concept a = Basic (Transition a)
 
 rise :: a -> Concept a
 rise s = vertex $ Transition s True
 
 fall :: a -> Concept a
 fall s = vertex $ Transition s False
+
+(~>) :: Concept a -> Concept a -> Concept a
+(~>) = connect
 
 buffer :: a -> a -> Concept a
 buffer a b = rise a ~> rise b <> fall a ~> fall b

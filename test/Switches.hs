@@ -1,11 +1,13 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 import Prelude hiding (reverse)
+import Data.Bits
 import Data.Monoid
 import Test.QuickCheck
 import Text.PrettyPrint.HughesPJClass (text, Pretty (..), prettyShow)
 
-import PG
+import Basic
+import Graph
 
 data Wire = EnvA | EnvB | CapA | CapB deriving (Eq, Ord, Show)
 
@@ -18,6 +20,9 @@ type Condition  = Predicate State
 
 envA, envB, capA, capB :: Expression
 [envA, envB, capA, capB] = map vertex [EnvA, EnvB, CapA, CapB]
+
+(~>) :: Expression -> Expression -> Expression
+(~>) = connect
 
 forward :: Expression
 forward = envA ~> capA <> capB ~> envB

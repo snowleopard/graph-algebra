@@ -1,9 +1,11 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
+import Data.Bits
 import Data.Monoid
 import Text.PrettyPrint.HughesPJClass (text, Pretty (..), prettyShow)
 
-import PG
+import Basic
+import Graph
 
 data Unit = IncrPC | LoadIR | ALU deriving (Eq, Ord, Show)
 
@@ -22,6 +24,9 @@ loadIR = vertex LoadIR
 
 alu :: Expression
 alu = vertex ALU
+
+(~>) :: PG a b -> PG a b -> PG a b
+(~>) = connect
 
 fetch :: Expression
 fetch = incrPC ~> loadIR

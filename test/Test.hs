@@ -1,41 +1,43 @@
 import Data.Foldable
 import Test.QuickCheck
 
+import Basic
 import Graph
 import PartialOrder
 
+type DirectedGraph = Basic Int
 -- Overlay properties:
-overlayIdentity :: Graph Int -> Bool
+overlayIdentity :: DirectedGraph -> Bool
 overlayIdentity x = x + empty == x
 
-overlayCommutativity :: Graph Int -> Graph Int -> Bool
+overlayCommutativity :: DirectedGraph -> DirectedGraph -> Bool
 overlayCommutativity x y = x + y == y + x
 
-overlayAssociativity :: Graph Int -> Graph Int -> Graph Int -> Bool
+overlayAssociativity :: DirectedGraph -> DirectedGraph -> DirectedGraph -> Bool
 overlayAssociativity x y z = x + (y + z) == (x + y) + z
 
-overlayIdempotence :: Graph Int -> Bool
+overlayIdempotence :: DirectedGraph -> Bool
 overlayIdempotence x = x + x == x
 
 -- Connect properties:
-connectIdentity :: Graph Int -> Bool
+connectIdentity :: DirectedGraph -> Bool
 connectIdentity x = x * empty == x && empty * x == x
 
-connectAssociativity :: Graph Int -> Graph Int -> Graph Int -> Bool
+connectAssociativity :: DirectedGraph -> DirectedGraph -> DirectedGraph -> Bool
 connectAssociativity x y z = x * (y * z) == (x * y) * z
 
 -- Other properties:
-distributivity :: Graph Int -> Graph Int -> Graph Int -> Bool
+distributivity :: DirectedGraph -> DirectedGraph -> DirectedGraph -> Bool
 distributivity x y z = x * (y + z) == x * y + x * z && (x + y) * z == x * z + y * z
 
-decomposition :: Graph Int -> Graph Int -> Graph Int -> Bool
+decomposition :: DirectedGraph -> DirectedGraph -> DirectedGraph -> Bool
 decomposition x y z = x * y * z == x * y + x * z + y * z
 
-absorption :: Graph Int -> Graph Int -> Bool
+absorption :: DirectedGraph -> DirectedGraph -> Bool
 absorption x y = x + x * y == x * y && y + x * y == x * y
 
 -- Test the partial order on graphs:
-partialOrder :: Graph Int -> Graph Int -> Bool
+partialOrder :: DirectedGraph -> DirectedGraph -> Bool
 partialOrder x y
     | x -<- y && x ->- y = x == y
     | x -<- y            = x + y == y
@@ -43,13 +45,13 @@ partialOrder x y
     | x -|- y            = x /= y
     | otherwise          = False
 
-lowerBound :: Graph Int -> Bool
+lowerBound :: DirectedGraph -> Bool
 lowerBound x = empty -<- x
 
-upperBound :: Graph Int -> Bool
+upperBound :: DirectedGraph -> Bool
 upperBound x = x -<- vertices (toList x) * vertices (toList x)
 
-overlayConnectOrder :: Graph Int -> Graph Int -> Bool
+overlayConnectOrder :: DirectedGraph -> DirectedGraph -> Bool
 overlayConnectOrder x y = x + y -<- x * y
 
 main :: IO ()

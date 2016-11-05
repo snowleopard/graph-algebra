@@ -17,9 +17,9 @@ source-repository head
 
 library
     hs-source-dirs:   src
-    exposed-modules:  Graph,
+    exposed-modules:  Basic,
+                      Graph,
                       PartialOrder,
-                      PG,
                       Relation
     build-depends:    base       >= 4.8 && < 5,
                       containers == 0.5.*,

@@ -1,30 +1,22 @@
-module Relation (
-    Relation (..), empty, singleton, union, unions, complete
-    ) where
+{-# LANGUAGE TypeFamilies #-}
+module Relation (Relation (..), fromRelation) where
 
 import PartialOrder
+import Graph
 
 data Relation a = Relation { domain :: [a], relation :: [(a, a)] }
-    deriving (Show, Eq)
+    deriving (Eq, Show)
 
 instance Ord a => PartialOrder (Relation a) where
     x -<- y = domain x -<- domain y && relation x -<- relation y
 
-empty :: Relation a
-empty = Relation [] []
-
-singleton :: a -> Relation a
-singleton x = Relation [x] []
-
-union :: Ord a => Relation a -> Relation a -> Relation a
-union p q = Relation (domain p +++ domain q) (relation p +++ relation q)
-
-unions :: Ord a => [Relation a] -> Relation a
-unions rs = Relation (foldr (+++) [] $ map domain   rs)
-                     (foldr (+++) [] $ map relation rs)
-
-complete :: Ord a => [a] -> [a] -> Relation a
-complete p q = Relation (p +++ q) [ (x, y) | x <- p, y <- q ]
+instance Ord a => Graph (Relation a) where
+    type Vertex (Relation a) = a
+    empty       = Relation [] []
+    vertex  x   = Relation [x] []
+    overlay x y = Relation (domain x +++ domain y) (relation x +++ relation y)
+    connect x y = Relation (domain x +++ domain y) $
+        relation x +++ relation y +++ [ (u, v) | u <- domain x, v <- domain y ]
 
 (+++) :: Ord a => [a] -> [a] -> [a]
 []     +++ xs     = xs
@@ -35,3 +27,7 @@ xs     +++ []     = xs
     EQ -> x : (    xs +++     ys)
 
 infixl 4 +++
+
+fromRelation :: Graph g => Relation (Vertex g) -> g
+fromRelation r = vertices (domain r) `overlay`
+    overlays [ vertex x `connect` vertex y | (x, y) <- relation r ]
