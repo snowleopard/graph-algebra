@@ -19,6 +19,7 @@ library
     hs-source-dirs:   src
     exposed-modules:  Basic,
                       Graph,
+                      Demo,
                       PartialOrder,
                       Relation
     build-depends:    base       >= 4.8 && < 5,

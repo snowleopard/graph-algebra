@@ -7,6 +7,7 @@ import Text.PrettyPrint.HughesPJClass hiding (empty, (<>))
 
 import Basic
 import Graph
+import Demo
 import PartialOrder
 
 data Transition a = Transition a Bool deriving (Eq, Functor, Ord)
@@ -18,12 +19,9 @@ newtype Concept a = Concept { graph :: Basic (Transition a) }
     deriving (Eq, Functor, Monoid, PartialOrder)
 
 instance Pretty a => Pretty (Concept a) where
-    pPrintPrec _ _ (Concept Empty)         = text "()"
-    pPrintPrec _ _ (Concept (Vertex  x  )) = pPrint x
-    pPrintPrec l p (Concept (Overlay x y)) = maybeParens (p > 0) $
-        hsep [pPrintPrec l 0 (Concept x), pPrintPrec l 0 (Concept y)]
-    pPrintPrec l _ (Concept (Connect x y)) =
-        hsep [pPrintPrec l 1 (Concept x), text "->", pPrintPrec l 1 (Concept y)]
+    pPrint (Concept g) = pPrintBasic g $ basicFormat
+        { formatOverlay = \_ x y -> x $+$ y
+        , formatConnect = \  x y -> hsep [x, text "->", y] }
 
 rise :: a -> Concept a
 rise s = vertex $ Transition s True
@@ -64,15 +62,15 @@ oscillatorHandshakes a b c = oscillator a b c == handshake a c <> handshake b c
 
 main :: IO ()
 main = do
-    demo $ buffer     A B
-    demo $ inverter   A B
-    demo $ handshake  A B
-    demo $ cElement   A B C
-    demo $ oscillator A B C
+    demo [ ("buffer"    , buffer     A B  )
+         , ("inverter"  , inverter   A B  )
+         , ("handshake" , handshake  A B  )
+         , ("cElement"  , cElement   A B C)
+         , ("oscillator", oscillator A B C)
+         , ("test"      , rise A ~> (rise C ~> handshake A B <> buffer B C)) ]
     quickCheck handshakeDefinition
     quickCheck oscillatorHandshakes
   where
-    demo = putStrLn . prettyShow -- . fmap simplify
 
 -- To be derived automatically using GeneralizedNewtypeDeriving in GHC 8.2
 instance Graph (Concept a) where

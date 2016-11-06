@@ -1,8 +1,9 @@
 {-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveGeneric, DeriveTraversable #-}
 {-# LANGUAGE TypeFamilies, TypeSynonymInstances, FlexibleInstances #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecordWildCards, LambdaCase #-}
 module Basic (
-    Basic (..), simplify, PG, Predicate, (?), decode, test, readBit
+    Basic (..), simplify, PG, Predicate, (?), decode, test, readBit,
+    pPrintBasic, BasicFormat (..), basicFormat
     ) where
 
 import Control.Monad.Reader
@@ -85,12 +86,12 @@ basicFormat = BasicFormat
     , formatConnect = \  x y ->                 hsep [x, text "->", y] }
 
 instance Pretty a => Pretty (Basic a) where
-    pPrint = pPrintBasic basicFormat
+    pPrint g = pPrintBasic g basicFormat
 
-pPrintBasic :: Pretty a => BasicFormat -> Basic a -> Doc
-pPrintBasic BasicFormat {..} = go False
+pPrintBasic :: Pretty a => Basic a -> BasicFormat -> Doc
+pPrintBasic g BasicFormat {..} = go False g
   where
-    go p g = case g of
+    go p = \case
         Empty       -> formatEmpty
         Vertex  x   -> formatVertex $ pPrint x
         Overlay x y -> formatOverlay p (go False x) (go False y)
