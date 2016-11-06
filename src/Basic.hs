@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveGeneric, DeriveTraversable #-}
 {-# LANGUAGE TypeFamilies, TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE RecordWildCards #-}
 module Basic (
     Basic (..), simplify, PG, Predicate, (?), decode, test, readBit
     ) where
@@ -70,13 +71,30 @@ instance Ord a => Eq (Basic a) where
 instance Ord a => PartialOrder (Basic a) where
     x -<- y = toRelation x -<- toRelation y
 
+data BasicFormat = BasicFormat
+    { formatEmpty   :: Doc
+    , formatVertex  :: Doc -> Doc
+    , formatOverlay :: Bool -> Doc -> Doc -> Doc
+    , formatConnect :: Doc -> Doc -> Doc }
+
+basicFormat :: BasicFormat
+basicFormat = BasicFormat
+    { formatEmpty   = text "()"
+    , formatVertex  = id
+    , formatOverlay = \p x y -> maybeParens p $ hsep [x, text "+" , y]
+    , formatConnect = \  x y ->                 hsep [x, text "->", y] }
+
 instance Pretty a => Pretty (Basic a) where
-    pPrintPrec _ _ Empty         = text "()"
-    pPrintPrec _ _ (Vertex  x  ) = pPrint x
-    pPrintPrec l p (Overlay x y) = maybeParens (p > 0) $
-        hsep [pPrintPrec l 0 x, text "+", pPrintPrec l 0 y]
-    pPrintPrec l _ (Connect x y) =
-        hsep [pPrintPrec l 1 x, text "->", pPrintPrec l 1 y]
+    pPrint = pPrintBasic basicFormat
+
+pPrintBasic :: Pretty a => BasicFormat -> Basic a -> Doc
+pPrintBasic BasicFormat {..} = go False
+  where
+    go p g = case g of
+        Empty       -> formatEmpty
+        Vertex  x   -> formatVertex $ pPrint x
+        Overlay x y -> formatOverlay p (go False x) (go False y)
+        Connect x y -> formatConnect   (go True  x) (go True  y)
 
 simplify :: Ord a => Basic a -> Basic a
 simplify (Overlay x y)
