@@ -1,13 +1,15 @@
 {-# LANGUAGE TypeFamilies, FlexibleContexts #-}
 {-# LANGUAGE DeriveFunctor, StandaloneDeriving, GeneralizedNewtypeDeriving #-}
+module Concept (
+    Transition (..), Concept (..), rise, fall, (~>), (<>),
+    buffer, inverter, handshake, cElement
+    ) where
 
 import Data.Monoid
-import Test.QuickCheck
 import Text.PrettyPrint.HughesPJClass hiding (empty, (<>))
 
 import Basic
 import Graph
-import Demo
 import PartialOrder
 
 data Transition a = Transition a Bool deriving (Eq, Functor, Ord)
@@ -43,34 +45,6 @@ handshake a b = buffer a b <> inverter b a
 
 cElement :: a -> a -> a -> Concept a
 cElement a b c = buffer a c <> buffer b c
-
-oscillator :: a -> a -> a -> Concept a
-oscillator a b c = cElement a b c <> inverter c a <> inverter c b
-
-data Signal = A | B | C deriving (Eq, Ord, Show)
-
-instance Pretty Signal where pPrint = text . show
-
-handshakeDefinition :: Int -> Int -> Bool
-handshakeDefinition a b = handshake a b == mconcat [ rise a ~> rise b
-                                                   , rise b ~> fall a
-                                                   , fall a ~> fall b
-                                                   , fall b ~> rise a ]
-
-oscillatorHandshakes :: Int -> Int -> Int -> Bool
-oscillatorHandshakes a b c = oscillator a b c == handshake a c <> handshake b c
-
-main :: IO ()
-main = do
-    demo [ ("buffer"    , buffer     A B  )
-         , ("inverter"  , inverter   A B  )
-         , ("handshake" , handshake  A B  )
-         , ("cElement"  , cElement   A B C)
-         , ("oscillator", oscillator A B C)
-         , ("test"      , rise A ~> (rise C ~> handshake A B <> buffer B C)) ]
-    quickCheck handshakeDefinition
-    quickCheck oscillatorHandshakes
-  where
 
 -- To be derived automatically using GeneralizedNewtypeDeriving in GHC 8.2
 instance Graph (Concept a) where

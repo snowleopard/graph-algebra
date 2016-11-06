@@ -1,9 +1,11 @@
-module Demo (demo) where
+{-# LANGUAGE RankNTypes #-}
+module Demo (demo, test) where
 
-import Data.List
+import Test.QuickCheck
 import Text.PrettyPrint.HughesPJClass
 
-demo :: Pretty a => [(String, a)] -> IO ()
-demo items = putStrLn . render . vcat $ intersperse (text "") docs
-  where
-    docs = map (\(str, item) -> hsep [ text str, text "=", pPrint item]) items
+demo :: Pretty a => String -> a -> IO ()
+demo str x = putStrLn . render $ text str <+> text "=" <+> pPrint x $$ text ""
+
+test :: Testable a => String -> a -> IO ()
+test str p = putStr (str ++ ": ") >> quickCheck p
