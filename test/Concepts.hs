@@ -1,18 +1,29 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE TypeFamilies, FlexibleContexts #-}
+{-# LANGUAGE DeriveFunctor, StandaloneDeriving, GeneralizedNewtypeDeriving #-}
 
 import Data.Monoid
 import Test.QuickCheck
-import Text.PrettyPrint.HughesPJClass (hcat, text, Pretty (..), prettyShow)
+import Text.PrettyPrint.HughesPJClass hiding (empty, (<>))
 
 import Basic
 import Graph
+import PartialOrder
 
-data Transition a = Transition a Bool deriving (Eq, Ord)
+data Transition a = Transition a Bool deriving (Eq, Functor, Ord)
 
 instance Pretty a => Pretty (Transition a) where
     pPrint (Transition s v) = hcat [pPrint s, text $ if v then "+" else "-"]
 
-type Concept a = Basic (Transition a)
+newtype Concept a = Concept { graph :: Basic (Transition a) }
+    deriving (Eq, Functor, Monoid, PartialOrder)
+
+instance Pretty a => Pretty (Concept a) where
+    pPrintPrec _ _ (Concept Empty)         = text "()"
+    pPrintPrec _ _ (Concept (Vertex  x  )) = pPrint x
+    pPrintPrec l p (Concept (Overlay x y)) = maybeParens (p > 0) $
+        hsep [pPrintPrec l 0 (Concept x), pPrintPrec l 0 (Concept y)]
+    pPrintPrec l _ (Concept (Connect x y)) =
+        hsep [pPrintPrec l 1 (Concept x), text "->", pPrintPrec l 1 (Concept y)]
 
 rise :: a -> Concept a
 rise s = vertex $ Transition s True
@@ -61,4 +72,12 @@ main = do
     quickCheck handshakeDefinition
     quickCheck oscillatorHandshakes
   where
-    demo = putStrLn . prettyShow . simplify
+    demo = putStrLn . prettyShow -- . fmap simplify
+
+-- To be derived automatically using GeneralizedNewtypeDeriving in GHC 8.2
+instance Graph (Concept a) where
+    type Vertex (Concept a) = Transition a
+    empty       = Concept empty
+    vertex      = Concept . vertex
+    overlay x y = Concept $ overlay (graph x) (graph y)
+    connect x y = Concept $ connect (graph x) (graph y)
