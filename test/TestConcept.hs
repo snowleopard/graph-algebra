@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeApplications #-}
 import Data.Char
 import Text.PrettyPrint.HughesPJClass hiding (empty, (<>))
 
@@ -11,15 +12,6 @@ instance Pretty Signal where pPrint = text . map toLower . show
 oscillator :: a -> a -> a -> Concept a
 oscillator a b c = cElement a b c <> inverter c a <> inverter c b
 
-handshakeDefinition :: Int -> Int -> Bool
-handshakeDefinition a b = handshake a b == mconcat [ rise a ~> rise b
-                                                   , rise b ~> fall a
-                                                   , fall a ~> fall b
-                                                   , fall b ~> rise a ]
-
-oscillatorHandshakes :: Int -> Int -> Int -> Bool
-oscillatorHandshakes a b c = oscillator a b c == handshake a c <> handshake b c
-
 main :: IO ()
 main = do
     demo "buffer"     $ buffer     A B
@@ -30,5 +22,9 @@ main = do
 
     putStrLn "Testing:"
 
-    test "Handshake definition"  handshakeDefinition
-    test "Oscillator handshakes" oscillatorHandshakes
+    test "Handshake definition" $ \a b ->
+        handshake @Int a b == mconcat [ rise a ~> rise b, rise b ~> fall a
+                                      , fall a ~> fall b, fall b ~> rise a ]
+
+    test "Oscillator handshakes" $ \a b c ->
+        oscillator @Int a b c == handshake a c <> handshake b c
