@@ -14,6 +14,8 @@ oscillator a b c = cElement a b c <> inverter c a <> inverter c b
 
 main :: IO ()
 main = do
+    putStrLn "============ Testing concepts ============"
+
     demo "buffer"     $ buffer     A B
     demo "inverter"   $ inverter   A B
     demo "handshake"  $ handshake  A B

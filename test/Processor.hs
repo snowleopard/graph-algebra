@@ -55,6 +55,7 @@ processor = mconcat [ x  ? y' ? nop
 
 main :: IO ()
 main = do
+    putStrLn "============ Testing processor instructions ============"
     demo $ decode processor 0
     demo $ decode processor 1
     demo $ decode processor 2

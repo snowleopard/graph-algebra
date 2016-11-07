@@ -52,6 +52,7 @@ hBridgeDefinition (Small i) = decode twoway (State i) == decode hBridge (State i
 
 main :: IO ()
 main = do
+    putStrLn "============ Testing switching networks ============"
     demo $ decode twoway 0
     demo $ decode twoway 1
     demo $ decode hBridge 0

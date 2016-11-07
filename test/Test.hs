@@ -56,6 +56,7 @@ overlayConnectOrder x y = x + y -<- x * y
 
 main :: IO ()
 main = do
+    putStrLn "============ Testing library ============"
     quickCheck overlayIdentity
     quickCheck overlayCommutativity
     quickCheck overlayAssociativity
