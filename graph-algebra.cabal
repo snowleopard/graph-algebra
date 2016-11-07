@@ -17,11 +17,11 @@ source-repository head
 
 library
     hs-source-dirs:   src
-    exposed-modules:  Basic,
-                      Concept,
-                      Graph,
-                      Demo,
-                      PartialOrder,
+    exposed-modules:  Basic
+                      Concept
+                      Graph
+                      Demo
+                      PartialOrder
                       Relation
     build-depends:    base       >= 4.8 && < 5,
                       containers == 0.5.*,
@@ -29,10 +29,15 @@ library
                       pretty     == 1.1.*,
                       QuickCheck >= 2.6 && < 2.9
     default-language: Haskell2010
-    other-extensions: DeriveFunctor,
-                      DeriveFoldable,
+    other-extensions: DeriveFunctor
+                      DeriveFoldable
                       DeriveTraversable
                       FlexibleInstances
+                      GeneralizedNewtypeDeriving
+                      LambdaCase
+                      TypeApplications
+                      TypeFamilies
+                      RecordWildCards
     GHC-options:      -O2 -Wall -fwarn-tabs
 
 test-suite test-library

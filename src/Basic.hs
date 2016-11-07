@@ -1,6 +1,5 @@
-{-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveGeneric, DeriveTraversable #-}
-{-# LANGUAGE TypeFamilies, TypeSynonymInstances, FlexibleInstances #-}
-{-# LANGUAGE RecordWildCards, LambdaCase #-}
+{-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveTraversable #-}
+{-# LANGUAGE TypeFamilies, FlexibleInstances, RecordWildCards, LambdaCase #-}
 module Basic (
     Basic (..), simplify, PG, Predicate, (?), decode, test, readBit,
     pPrintBasic, BasicFormat (..), basicFormat
