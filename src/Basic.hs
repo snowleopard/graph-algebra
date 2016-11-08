@@ -1,10 +1,12 @@
-{-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveTraversable #-}
-{-# LANGUAGE FlexibleInstances, RecordWildCards, LambdaCase #-}
+{-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveTraversable, LambdaCase #-}
+{-# LANGUAGE FlexibleInstances, RecordWildCards, GeneralizedNewtypeDeriving #-}
 module Basic (
-    Basic (..), simplify, flatten, pPrintBasic, BasicFormat (..), basicFormat
+    Basic (..), simplify, flatten, pPrintBasic, BasicFormat (..), basicFormat,
+    Undirected (..)
     ) where
 
 import Data.List
+import Data.List.Extra
 import Test.QuickCheck
 import Text.PrettyPrint.HughesPJClass hiding (empty)
 
@@ -119,3 +121,18 @@ flatten g = simplify $ vertices (d \\ (map fst r ++ map snd r)) `overlay`
     overlays [ vertex x `connect` vertex y | (x, y) <- r ]
   where
     Relation d r = toRelation g
+
+newtype Undirected a = Undirected (Basic a)
+    deriving (Functor, Graph, Monoid, Num, Arbitrary, Show)
+
+instance Ord a => Eq (Undirected a) where
+    x == y = Relation dx (canonicalise rx) == Relation dy (canonicalise ry)
+      where
+        Relation dx rx = toRelation x
+        Relation dy ry = toRelation y
+        canonicalise pairs = nubOrd . sort $ map sortPair pairs
+        sortPair (x, y) = if x <= y then (x, y) else (y, x)
+
+instance Pretty a => Pretty (Undirected a) where
+    pPrint (Undirected g) = pPrintBasic g $ basicFormat
+        { formatConnect = \x y -> hsep [x, text "--", y] }

@@ -8,6 +8,7 @@ import Text.PrettyPrint.HughesPJClass (text, Pretty (..), prettyShow)
 
 import Basic
 import Graph
+import PG
 
 data Wire = EnvA | EnvB | CapA | CapB deriving (Eq, Ord, Show)
 
@@ -15,30 +16,29 @@ instance Pretty Wire where pPrint = text . show
 
 newtype State = State Int deriving (Bits, Eq, Num)
 
-type Expression = PG Wire State
+type Expression = Tagged Undirected Wire State
 type Condition  = Predicate State
 
 envA, envB, capA, capB :: Expression
 [envA, envB, capA, capB] = map vertex [EnvA, EnvB, CapA, CapB]
 
-(~>) :: Expression -> Expression -> Expression
-(~>) = connect
+(~~) :: Expression -> Expression -> Expression
+(~~) = connect
 
 forward :: Expression
-forward = envA ~> capA <> capB ~> envB
+forward = envA ~~ capA <> capB ~~ envB
 
 reverse :: Expression
-reverse = envA ~> capB <> capA ~> envB
+reverse = envA ~~ capB <> capA ~~ envB
 
 x, x' :: Condition
-x  = readBit 0
-x' = not <$> x
+(x, x') = readBit 0
 
 twoway :: Expression
 twoway = x' ? forward <> x ? reverse
 
 switch :: Expression -> Expression -> Condition -> Expression
-switch a b c = c ? (a ~> b)
+switch a b c = c ? (a ~~ b)
 
 hBridge :: Expression
 hBridge = mconcat [ envA, envB, capA, capB

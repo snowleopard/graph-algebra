@@ -55,7 +55,7 @@ instance Boolean Bool where
     (&&)  = (Data.Bool.&&)
     (||)  = (Data.Bool.||)
 
-newtype Tagged g t a = Tagged { graph :: g (t, a) }
+newtype Tagged g t a = Tagged (g (t, a))
     deriving Functor
 
 deriving instance (Arbitrary a, Arbitrary t) => Arbitrary (Tagged Basic t a)
@@ -75,12 +75,12 @@ instance (Graph g, Num a, Semiring t) => Num (Tagged g t a) where
     negate      = id
 
 instance (Graph g, Semiring t) => Graph (Tagged g t) where
-    empty       = Tagged empty
-    vertex  x   = Tagged $ vertex (one, x)
-    overlay x y = Tagged $ overlay (graph x) (graph y)
-    connect x y = Tagged $ connect (graph x) (graph y)
+    empty                         = Tagged empty
+    vertex  x                     = Tagged $ vertex (one, x)
+    overlay (Tagged x) (Tagged y) = Tagged $ overlay x y
+    connect (Tagged x) (Tagged y) = Tagged $ connect x y
 
-    fold e v o c = fold e (v . snd) o c . graph
+    fold e v o c (Tagged graph) = fold e (v . snd) o c graph
 
 groupTags :: (Graph g, Semiring t, Ord a, Ord t) => Tagged g t a -> ([(t, a)], [(t, (a, a))])
 groupTags (Tagged g) = (collapse $ d ++ concat vvs, collapse as)

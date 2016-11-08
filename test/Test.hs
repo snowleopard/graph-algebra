@@ -10,6 +10,7 @@ import PG
 
 type G = Basic Int
 type P = PG Int Bool
+type U = Undirected Int
 
 main :: IO ()
 main = do
@@ -41,6 +42,9 @@ main = do
 
     test "Absorption" $ \(x :: G) y ->
         x + x * y == x * y && y + x * y == x * y
+
+    test "Commutativity of undirected connect" $ \(x :: U) y ->
+        x * y == y * x
 
     test "True and false condition" $ \(x :: P) ->
         True ? x == x && False ? x == empty
