@@ -29,4 +29,4 @@ toRelation = fold (Relation [] []) v o c
     v x   = Relation [x] []
     o x y = Relation (domain x +++ domain y) (relation x +++ relation y)
     c x y = Relation (domain x +++ domain y) $
-        relation x +++ relation y +++ [ (u, v) | u <- domain x, v <- domain y ]
+        relation x +++ relation y +++ [ (a, b) | a <- domain x, b <- domain y ]

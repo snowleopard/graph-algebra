@@ -10,7 +10,6 @@ import Data.Bits
 import Data.Bifunctor
 import qualified Data.Bool
 import Data.List.Extra
-import Data.Monoid
 import Test.QuickCheck
 import Text.PrettyPrint.HughesPJClass hiding (empty, (<>), first)
 

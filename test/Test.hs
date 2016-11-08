@@ -43,9 +43,32 @@ main = do
     test "Absorption" $ \(x :: G) y ->
         x + x * y == x * y && y + x * y == x * y
 
-    test "Commutativity of undirected connect" $ \(x :: U) y ->
+    test "Connect saturation" $ \(x :: U) ->
+        x * x == x * x * x
+
+    test "Lower bound" $ \(x :: G) ->
+        empty -<- x
+
+    test "Upper bound" $ \(x :: G) ->
+        x -<- vertices (toList x) * vertices (toList x)
+
+    test "Overlay-connect order" $ \(x :: G) y ->
+        x + y -<- x * y
+
+    let partialOrder (x :: G) y
+            | x -<- y && x ->- y = x == y
+            | x -<- y            = x + y == y
+            | x ->- y            = x + y == x
+            | x -|- y            = x /= y
+            | otherwise          = False
+
+    test "Partial order" partialOrder
+
+    putStrLn "============ Undirected graphs ============"
+    test "Connect commutativity" $ \(x :: U) y ->
         x * y == y * x
 
+    putStrLn "============ Parameterised graphs ============"
     test "True and false condition" $ \(x :: P) ->
         True ? x == x && False ? x == empty
 
@@ -70,23 +93,4 @@ main = do
 
     test "Condition regularisation" $ \(x :: P) y b1 b2 ->
         b1 ? x * b2 ? y == b1 ? x + b2 ? y + (b1 && b2) ? (x * y)
-
-    test "Lower bound" $ \(x :: G) ->
-        empty -<- x
-
-    test "Upper bound" $ \(x :: G) ->
-        x -<- vertices (toList x) * vertices (toList x)
-
-    test "Overlay-connect order" $ \(x :: G) y ->
-        x + y -<- x * y
-
-    test "Partial order" partialOrder
-  where
-    partialOrder :: G -> G -> Bool
-    partialOrder x y
-        | x -<- y && x ->- y = x == y
-        | x -<- y            = x + y == y
-        | x ->- y            = x + y == x
-        | x -|- y            = x /= y
-        | otherwise          = False
 

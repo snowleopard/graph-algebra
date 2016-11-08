@@ -62,12 +62,6 @@ instance Num a => Num (Basic a) where
     abs         = id
     negate      = id
 
-fromBasic :: Graph g => Basic a -> g a
-fromBasic Empty         = empty
-fromBasic (Vertex  x  ) = vertex x
-fromBasic (Overlay x y) = overlay (fromBasic x) (fromBasic y)
-fromBasic (Connect x y) = connect (fromBasic x) (fromBasic y)
-
 instance Ord a => Eq (Basic a) where
     x == y = toRelation x == toRelation y
 
@@ -126,12 +120,16 @@ newtype Undirected a = Undirected (Basic a)
     deriving (Functor, Graph, Monoid, Num, Arbitrary, Show)
 
 instance Ord a => Eq (Undirected a) where
-    x == y = Relation dx (canonicalise rx) == Relation dy (canonicalise ry)
-      where
-        Relation dx rx = toRelation x
-        Relation dy ry = toRelation y
-        canonicalise pairs = nubOrd . sort $ map sortPair pairs
-        sortPair (x, y) = if x <= y then (x, y) else (y, x)
+    x == y = undirectedRelation x == undirectedRelation y
+
+instance Ord a => PartialOrder (Undirected a) where
+    x -<- y = undirectedRelation x -<- undirectedRelation y
+
+undirectedRelation :: Ord a => Undirected a -> Relation a
+undirectedRelation x = Relation d (nubOrd . sort $ map sortPair r)
+  where
+    Relation d r    = toRelation x
+    sortPair (a, b) = if a <= b then (a, b) else (b, a)
 
 instance Pretty a => Pretty (Undirected a) where
     pPrint (Undirected g) = pPrintBasic g $ basicFormat
