@@ -1,8 +1,7 @@
 {-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveTraversable #-}
-{-# LANGUAGE TypeFamilies, FlexibleInstances, RecordWildCards, LambdaCase #-}
+{-# LANGUAGE FlexibleInstances, RecordWildCards, LambdaCase #-}
 module Basic (
-    Basic (..), simplify, flatten, toRelation, pPrintBasic, BasicFormat (..),
-    basicFormat
+    Basic (..), simplify, flatten, pPrintBasic, BasicFormat (..), basicFormat
     ) where
 
 import Data.List
@@ -19,12 +18,18 @@ data Basic a = Empty
              | Connect (Basic a) (Basic a)
              deriving (Show, Functor, Foldable, Traversable)
 
-instance Graph (Basic a) where
-    type Vertex (Basic a) = a
+instance Graph Basic where
     empty   = Empty
     vertex  = Vertex
     overlay = Overlay
     connect = Connect
+
+    fold e v o c = go
+      where
+        go Empty         = e
+        go (Vertex  x  ) = v x
+        go (Overlay x y) = o (go x) (go y)
+        go (Connect x y) = c (go x) (go y)
 
 instance Arbitrary a => Arbitrary (Basic a) where
     arbitrary = sized graph
@@ -55,14 +60,11 @@ instance Num a => Num (Basic a) where
     abs         = id
     negate      = id
 
-fromBasic :: Graph g => Basic (Vertex g) -> g
+fromBasic :: Graph g => Basic a -> g a
 fromBasic Empty         = empty
 fromBasic (Vertex  x  ) = vertex x
 fromBasic (Overlay x y) = overlay (fromBasic x) (fromBasic y)
 fromBasic (Connect x y) = connect (fromBasic x) (fromBasic y)
-
-toRelation :: Ord a => Basic a -> Relation a
-toRelation = fromBasic
 
 instance Ord a => Eq (Basic a) where
     x == y = toRelation x == toRelation y

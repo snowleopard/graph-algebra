@@ -38,7 +38,6 @@ library
                       GeneralizedNewtypeDeriving
                       LambdaCase
                       TypeApplications
-                      TypeFamilies
                       RecordWildCards
     GHC-options:      -O2 -Wall -fwarn-tabs
 

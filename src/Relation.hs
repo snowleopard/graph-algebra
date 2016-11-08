@@ -1,5 +1,4 @@
-{-# LANGUAGE TypeFamilies #-}
-module Relation (Relation (..), fromRelation, (+++)) where
+module Relation (Relation (..), fromRelation, toRelation, (+++)) where
 
 import Graph
 import PartialOrder
@@ -9,14 +8,6 @@ data Relation a = Relation { domain :: [a], relation :: [(a, a)] }
 
 instance Ord a => PartialOrder (Relation a) where
     x -<- y = domain x -<- domain y && relation x -<- relation y
-
-instance Ord a => Graph (Relation a) where
-    type Vertex (Relation a) = a
-    empty       = Relation [] []
-    vertex  x   = Relation [x] []
-    overlay x y = Relation (domain x +++ domain y) (relation x +++ relation y)
-    connect x y = Relation (domain x +++ domain y) $
-        relation x +++ relation y +++ [ (u, v) | u <- domain x, v <- domain y ]
 
 (+++) :: Ord a => [a] -> [a] -> [a]
 []     +++ xs     = xs
@@ -28,6 +19,14 @@ xs     +++ []     = xs
 
 infixl 4 +++
 
-fromRelation :: Graph g => Relation (Vertex g) -> g
+fromRelation :: Graph g => Relation a -> g a
 fromRelation (Relation d r) =
     vertices d `overlay` overlays [ vertex x `connect` vertex y | (x, y) <- r ]
+
+toRelation :: (Ord a, Graph g) => g a -> Relation a
+toRelation = fold (Relation [] []) v o c
+  where
+    v x   = Relation [x] []
+    o x y = Relation (domain x +++ domain y) (relation x +++ relation y)
+    c x y = Relation (domain x +++ domain y) $
+        relation x +++ relation y +++ [ (u, v) | u <- domain x, v <- domain y ]

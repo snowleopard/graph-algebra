@@ -1,7 +1,7 @@
-{-# LANGUAGE TypeFamilies, FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DeriveFunctor, StandaloneDeriving, GeneralizedNewtypeDeriving #-}
 module Concept (
-    Transition (..), Concept (..), rise, fall, (~>), (<>),
+    Transition (..), Concept, rise, fall, (~>), (<>),
     buffer, inverter, handshake, cElement
     ) where
 
@@ -17,13 +17,15 @@ data Transition a = Transition a Bool deriving (Eq, Functor, Ord)
 instance Pretty a => Pretty (Transition a) where
     pPrint (Transition s v) = hcat [pPrint s, text $ if v then "+" else "-"]
 
-newtype Concept a = Concept { graph :: Basic (Transition a) }
-    deriving (Eq, Functor, Monoid, PartialOrder)
+newtype Tweaked a = Tweaked { graph :: Basic a }
+    deriving (Eq, Functor, Graph, Monoid, PartialOrder)
 
-instance Pretty a => Pretty (Concept a) where
-    pPrint (Concept g) = pPrintBasic g $ basicFormat
+instance Pretty a => Pretty (Tweaked a) where
+    pPrint (Tweaked g) = pPrintBasic g $ basicFormat
         { formatOverlay = \_ x y -> x $+$ y
         , formatConnect = \  x y -> hsep [x, text "->", y] }
+
+type Concept a = Tweaked (Transition a)
 
 rise :: a -> Concept a
 rise s = vertex $ Transition s True
@@ -45,11 +47,3 @@ handshake a b = buffer a b <> inverter b a
 
 cElement :: a -> a -> a -> Concept a
 cElement a b c = buffer a c <> buffer b c
-
--- To be derived automatically using GeneralizedNewtypeDeriving in GHC 8.2
-instance Graph (Concept a) where
-    type Vertex (Concept a) = Transition a
-    empty       = Concept empty
-    vertex      = Concept . vertex
-    overlay x y = Concept $ overlay (graph x) (graph y)
-    connect x y = Concept $ connect (graph x) (graph y)

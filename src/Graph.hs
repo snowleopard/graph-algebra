@@ -1,26 +1,26 @@
-{-# LANGUAGE TypeFamilies #-}
 module Graph (Graph (..), vertices, clique, overlays, connects) where
 
 class Graph g where
-    type Vertex g
-    empty   :: g
-    vertex  :: Vertex g -> g
-    overlay :: g -> g -> g
-    connect :: g -> g -> g
+    empty   :: g a
+    vertex  :: a -> g a
+    overlay :: g a -> g a -> g a
+    connect :: g a -> g a -> g a
 
-vertices :: Graph g => [Vertex g] -> g
+    fold    :: r -> (a -> r) -> (r -> r -> r) -> (r -> r -> r) -> g a -> r
+
+vertices :: Graph g => [a] -> g a
 vertices = overlays . map vertex
 
-clique :: Graph g => [Vertex g] -> g
+clique :: Graph g => [a] -> g a
 clique = connects . map vertex
 
 -- 'foldr f empty' adds a redundant empty to the result; foldg avoids this
-foldg :: Graph g => (g -> g -> g) -> [g] -> g
+foldg :: Graph g => (g a -> g a -> g a) -> [g a] -> g a
 foldg _ [] = empty
 foldg f gs = foldr1 f gs
 
-overlays :: Graph g => [g] -> g
+overlays :: Graph g => [g a] -> g a
 overlays = foldg overlay
 
-connects :: Graph g => [g] -> g
+connects :: Graph g => [g a] -> g a
 connects = foldg connect
