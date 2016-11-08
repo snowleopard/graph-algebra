@@ -1,8 +1,8 @@
 {-# LANGUAGE TypeFamilies #-}
-module Relation (Relation (..), fromRelation) where
+module Relation (Relation (..), fromRelation, (+++)) where
 
-import PartialOrder
 import Graph
+import PartialOrder
 
 data Relation a = Relation { domain :: [a], relation :: [(a, a)] }
     deriving (Eq, Show)
@@ -29,5 +29,5 @@ xs     +++ []     = xs
 infixl 4 +++
 
 fromRelation :: Graph g => Relation (Vertex g) -> g
-fromRelation r = vertices (domain r) `overlay`
-    overlays [ vertex x `connect` vertex y | (x, y) <- relation r ]
+fromRelation (Relation d r) =
+    vertices d `overlay` overlays [ vertex x `connect` vertex y | (x, y) <- r ]

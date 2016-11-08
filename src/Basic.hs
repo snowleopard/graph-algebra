@@ -1,12 +1,11 @@
 {-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveTraversable #-}
 {-# LANGUAGE TypeFamilies, FlexibleInstances, RecordWildCards, LambdaCase #-}
 module Basic (
-    Basic (..), simplify, PG, Predicate, (?), decode, test, readBit,
-    pPrintBasic, BasicFormat (..), basicFormat
+    Basic (..), simplify, flatten, toRelation, pPrintBasic, BasicFormat (..),
+    basicFormat
     ) where
 
-import Control.Monad.Reader
-import Data.Bits
+import Data.List
 import Test.QuickCheck
 import Text.PrettyPrint.HughesPJClass hiding (empty)
 
@@ -113,31 +112,8 @@ simplify (Connect x y)
     y' = simplify y
 simplify x = x
 
--- Parameterised graphs
-type PG a b      = Reader b (Basic a)
-type Predicate b = Reader b Bool
-
-instance Graph (PG a b) where
-    type Vertex (PG a b) = a
-    empty   = return empty
-    vertex  = return . vertex
-    overlay = liftM2 overlay
-    connect = liftM2 connect
-
-instance Monoid (Reader a (Basic b)) where
-    mempty  = return mempty
-    mappend = liftM2 overlay
-
-decode :: PG a b -> b -> Basic a
-decode = runReader
-
-(?) :: Predicate b -> PG a b -> PG a b
-p ? x = do { bool <- p; if bool then x else mempty }
-
-infixr 8 ?
-
-test :: (b -> Bool) -> Predicate b
-test = asks
-
-readBit :: Bits a => Int -> Predicate a
-readBit = test . flip testBit
+flatten :: Ord a => Basic a -> Basic a
+flatten g = simplify $ vertices (d \\ (map fst r ++ map snd r)) `overlay`
+    overlays [ vertex x `connect` vertex y | (x, y) <- r ]
+  where
+    Relation d r = toRelation g

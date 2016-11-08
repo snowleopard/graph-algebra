@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 import Data.Char
 import Text.PrettyPrint.HughesPJClass hiding (empty, (<>))
 
@@ -24,9 +24,9 @@ main = do
 
     putStrLn "Testing:"
 
-    test "Handshake definition" $ \a b ->
-        handshake @Int a b == mconcat [ rise a ~> rise b, rise b ~> fall a
+    test "Handshake definition" $ \(a :: Int) b ->
+        handshake a b == mconcat [ rise a ~> rise b, rise b ~> fall a
                                       , fall a ~> fall b, fall b ~> rise a ]
 
-    test "Oscillator handshakes" $ \a b c ->
-        oscillator @Int a b c == handshake a c <> handshake b c
+    test "Oscillator handshakes" $ \(a :: Int) b c ->
+        oscillator a b c == handshake a c <> handshake b c

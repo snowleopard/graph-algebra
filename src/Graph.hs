@@ -14,8 +14,13 @@ vertices = overlays . map vertex
 clique :: Graph g => [Vertex g] -> g
 clique = connects . map vertex
 
+-- 'foldr f empty' adds a redundant empty to the result; foldg avoids this
+foldg :: Graph g => (g -> g -> g) -> [g] -> g
+foldg _ [] = empty
+foldg f gs = foldr1 f gs
+
 overlays :: Graph g => [g] -> g
-overlays = foldr overlay empty
+overlays = foldg overlay
 
 connects :: Graph g => [g] -> g
-connects = foldr connect empty
+connects = foldg connect
