@@ -1,4 +1,3 @@
-{-# LANGUAGE RankNTypes #-}
 module Demo (demo, test) where
 
 import Test.QuickCheck

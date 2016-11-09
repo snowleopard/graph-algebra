@@ -17,7 +17,7 @@ data Transition a = Transition a Bool deriving (Eq, Functor, Ord)
 instance Pretty a => Pretty (Transition a) where
     pPrint (Transition s v) = hcat [pPrint s, text $ if v then "+" else "-"]
 
-newtype Tweaked a = Tweaked { graph :: Basic a }
+newtype Tweaked a = Tweaked (Basic a)
     deriving (Eq, Functor, Graph, Monoid, PartialOrder)
 
 instance Pretty a => Pretty (Tweaked a) where

@@ -61,24 +61,34 @@ test-suite test-processor
     default-language: Haskell2010
     GHC-options:      -O2 -Wall -fwarn-tabs
 
+test-suite test-command-line
+    hs-source-dirs:   test
+    type:             exitcode-stdio-1.0
+    main-is:          TestCommandLine.hs
+    build-depends:    base       >= 4.8 && < 5,
+                      containers == 0.5.*,
+                      pretty     == 1.1.*,
+                      graph-algebra
+    default-language: Haskell2010
+    GHC-options:      -O2 -Wall -fwarn-tabs
+
 test-suite test-concepts
     hs-source-dirs:   test
     type:             exitcode-stdio-1.0
     main-is:          TestConcept.hs
     build-depends:    base       >= 4.8 && < 5,
                       pretty     == 1.1.*,
-                      QuickCheck >= 2.6 && < 2.9,
                       graph-algebra
     default-language: Haskell2010
     GHC-options:      -O2 -Wall -fwarn-tabs
 
--- test-suite test-switches
---     hs-source-dirs:   test
---     type:             exitcode-stdio-1.0
---     main-is:          Switches.hs
---     build-depends:    base       >= 4.8 && < 5,
---                       pretty     == 1.1.*,
---                       QuickCheck >= 2.6 && < 2.9,
---                       graph-algebra
---     default-language: Haskell2010
---     GHC-options:      -O2 -Wall -fwarn-tabs
+test-suite test-switches
+    hs-source-dirs:   test
+    type:             exitcode-stdio-1.0
+    main-is:          TestCircuit.hs
+    build-depends:    base       >= 4.8 && < 5,
+                      pretty     == 1.1.*,
+                      QuickCheck >= 2.6 && < 2.9,
+                      graph-algebra
+    default-language: Haskell2010
+    GHC-options:      -O2 -Wall -fwarn-tabs

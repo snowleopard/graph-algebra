@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleInstances, RecordWildCards, GeneralizedNewtypeDeriving #-}
 module Basic (
     Basic (..), simplify, flatten, pPrintBasic, BasicFormat (..), basicFormat,
-    Undirected (..)
+    Undirected (..), undirectedRelation, simplifyU
     ) where
 
 import Data.List
@@ -92,6 +92,10 @@ pPrintBasic g BasicFormat {..} = go False g
         Vertex  x   -> formatVertex $ pPrint x
         Overlay x y -> formatOverlay p (go False x) (go False y)
         Connect x y -> formatConnect   (go True  x) (go True  y)
+
+
+simplifyU :: Ord a => Undirected a -> Undirected a
+simplifyU (Undirected g) = Undirected $ simplify g
 
 simplify :: Ord a => Basic a -> Basic a
 simplify (Overlay x y)

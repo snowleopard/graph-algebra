@@ -10,7 +10,7 @@ data Unit = IncrPC | LoadIR | ALU deriving (Eq, Ord, Show)
 
 instance Pretty Unit where pPrint = text . show
 
-type Expression = InstructionSet Unit
+type Expression = PG Unit Predicate
 
 incrPC :: Expression
 incrPC = vertex IncrPC

@@ -11,6 +11,7 @@ import PG
 type G = Basic Int
 type P = PG Int Bool
 type U = Undirected Int
+type S = SN Int Bool
 
 main :: IO ()
 main = do
@@ -66,6 +67,9 @@ main = do
 
     putStrLn "============ Undirected graphs ============"
     test "Connect commutativity" $ \(x :: U) y ->
+        x * y == y * x
+
+    test "Connect parameterised commutativity" $ \(x :: S) y ->
         x * y == y * x
 
     putStrLn "============ Parameterised graphs ============"

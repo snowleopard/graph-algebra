@@ -1,8 +1,8 @@
-{-# LANGUAGE DeriveFunctor, FlexibleContexts, StandaloneDeriving, GADTs #-}
-{-# LANGUAGE FlexibleInstances, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE FlexibleInstances, FlexibleContexts, StandaloneDeriving, GADTs #-}
+{-# LANGUAGE DeriveFunctor, MultiParamTypeClasses, GeneralizedNewtypeDeriving #-}
 module PG (
     Boolean (..), Tagged (..), tag, PG, (?), evaluate, decode, groupTags,
-    Code (..), InstructionSet, Predicate, readBit, match
+    Code (..), Predicate, SN, readBit, match
     ) where
 
 import Prelude hiding ((&&), (||), not)
@@ -54,13 +54,16 @@ instance Boolean Bool where
     (&&)  = (Data.Bool.&&)
     (||)  = (Data.Bool.||)
 
-newtype Tagged g t a = Tagged (g (t, a))
-    deriving Functor
+newtype Tagged g t a = Tagged (g (t, a)) deriving Functor
 
 deriving instance (Arbitrary a, Arbitrary t) => Arbitrary (Tagged Basic t a)
+deriving instance (Arbitrary a, Arbitrary t) => Arbitrary (Tagged Undirected t a)
 deriving instance Monoid (Tagged Basic t a)
+deriving instance Monoid (Tagged Undirected t a)
 deriving instance (Pretty a, Pretty t) => Pretty (Tagged Basic t a)
+deriving instance (Pretty a, Pretty t) => Pretty (Tagged Undirected t a)
 deriving instance (Show a, Show t) => Show (Tagged Basic t a)
+deriving instance (Show a, Show t) => Show (Tagged Undirected t a)
 
 tag :: (Functor g, Semiring t) => t -> Tagged g t a -> Tagged g t a
 tag newTag (Tagged graph) = Tagged $ fmap (first $ multiply newTag) graph
@@ -81,26 +84,35 @@ instance (Graph g, Semiring t) => Graph (Tagged g t) where
 
     fold e v o c (Tagged graph) = fold e (v . snd) o c graph
 
-groupTags :: (Graph g, Semiring t, Ord a, Ord t) => Tagged g t a -> ([(t, a)], [(t, (a, a))])
-groupTags (Tagged g) = (collapse $ d ++ concat vvs, collapse as)
-  where
-    Relation d r         = toRelation g
-    (tx, x) -<>- (ty, y) = (tx `multiply` ty, (x, y))
-    (vvs, as)            = unzip [ ([x, y], x -<>- y) | (x, y) <- r ]
-
 collapse :: (Ord a, Semiring t) => [(t, a)] -> [(t, a)]
 collapse = filter (not . isZero . fst) . map collapseOne . groupSortOn snd
   where
     collapseOne = bimap (foldr1 add) head . unzip
 
--- TODO: Ord b is not really necessary, but allows to reuse Relation
-instance (Graph g, Ord a, Ord t, Semiring t) => Eq (Tagged g t a) where
+class (Functor g, Graph g) => GroupTags g t a where
+    groupTags :: Tagged g t a -> ([(t, a)], [(t, (a, a))])
+
+instance (Semiring t, Ord a, Ord t) => GroupTags Basic t a where
+    groupTags (Tagged g) = (collapse $ d ++ concat vvs, collapse as)
+      where
+        Relation d r         = toRelation g
+        (tx, x) -<>- (ty, y) = (tx `multiply` ty, (x, y))
+        (vvs, as)            = unzip [ ([x, y], x -<>- y) | (x, y) <- r ]
+
+instance (Semiring t, Ord a, Ord t) => GroupTags Undirected t a where
+    groupTags (Tagged g) = (collapse $ d ++ concat vvs, collapse as)
+      where
+        Relation d r         = undirectedRelation g
+        (tx, x) -<>- (ty, y) = (tx `multiply` ty, (x, y))
+        (vvs, as)            = unzip [ ([x, y], x -<>- y) | (x, y) <- r ]
+
+instance (GroupTags g t a, Ord a, Ord t) => Eq (Tagged g t a) where
     x == y = xvs == yvs && xas == yas
       where
         (xvs, xas) = groupTags x
         (yvs, yas) = groupTags y
 
-evaluate :: (Ord a, Functor g, Graph g) => (t -> Bool) -> Tagged g t a -> g a
+evaluate :: (GroupTags g Bool a) => (t -> Bool) -> Tagged g t a -> g a
 evaluate f (Tagged graph) = fromRelation $ Relation (map snd vs) (map snd as)
   where
     (vs, as) = groupTags . Tagged $ fmap (first f) graph
@@ -111,9 +123,10 @@ newtype DNF = DNF [[Int]] deriving (Eq, Ord, Show)
 
 instance Pretty DNF where pPrint = text . show
 
-type Predicate        = DNF
-type PG a b           = Tagged Basic b a
-type InstructionSet a = Tagged Basic Predicate a
+-- TODO: Switch to a proper Predicate implementation
+type Predicate = DNF
+type PG a b    = Tagged Basic b a
+type SN a b    = Tagged Undirected b a
 
 (?) :: (Boolean b, Functor g) => b -> Tagged g b a -> Tagged g b a
 p ? x = tag p x
@@ -125,7 +138,7 @@ instance Boolean DNF where
     false            = DNF []
     not (DNF xs)     = DNF . sequence . reverse $ map (reverse . map negate) xs
     DNF xs && DNF ys = DNF [ x +++ y | x <- xs, y <- ys, compatible x y ]
-    DNF xs || DNF ys = DNF $ xs +++ ys
+    DNF xs || DNF ys = DNF . filter (not . null) $ xs +++ ys
 
 instance Semiring DNF where
     zero            = false
@@ -149,5 +162,5 @@ match code (DNF xs) = any termSatisfied xs
         | k > 0 =       testBit code ( k - 1)
         | otherwise = error $ "Tagged.match: internal invariant violated"
 
-decode :: Ord a => Code -> InstructionSet a -> Basic a
+decode :: GroupTags g Bool a => Code -> Tagged g Predicate a -> g a
 decode code = evaluate (match code)
