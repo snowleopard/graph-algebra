@@ -65,12 +65,24 @@ main = do
 
     test "Partial order" partialOrder
 
+    test "Transpose self-inverse" $ \(x :: G) ->
+        transpose (transpose x) == x
+
+    test "Transpose overlay" $ \(x :: G) y ->
+        transpose (x + y) == transpose x + transpose y
+
+    test "Transpose connect" $ \(x :: G) y ->
+        transpose (x * y) == transpose y * transpose x
+
     putStrLn "============ Undirected graphs ============"
     test "Connect commutativity" $ \(x :: U) y ->
         x * y == y * x
 
     test "Connect parameterised commutativity" $ \(x :: S) y ->
         x * y == y * x
+
+    test "Transpose identity" $ \(x :: U) ->
+        transpose x == x
 
     putStrLn "============ Parameterised graphs ============"
     test "True and false condition" $ \(x :: P) ->
