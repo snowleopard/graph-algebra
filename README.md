@@ -4,3 +4,6 @@
 
 
 A simple graph algebra
+
+**Note:** This is an old and experimental repository. See https://github.com/snowleopard/alga for the most up-to-date
+implementation of the algebra of graphs.
